@@ -897,7 +897,7 @@ export default function App() {
 
       {/* RECIPE DETAILS MODAL */}
       {selectedRecipe && (
-        <div className="fixed inset-0 z-50 bg-black/50 flex items-end justify-center p-0">
+        <div className="fixed inset-0 z-[100] bg-black/50 flex items-end justify-center p-0">
           <div className="bg-white rounded-t-2xl w-full max-w-lg max-h-[85vh] overflow-y-auto flex flex-col shadow-2xl">
             {/* Header / Banner */}
             <div className="bg-emerald-800 text-white p-4 sticky top-0 flex justify-between items-start shadow-md">
@@ -991,7 +991,7 @@ export default function App() {
 
       {/* SCHEDULER CHOOSE RECIPE MODAL */}
       {isAddPlanModalOpen && (
-        <div className="fixed inset-0 z-50 bg-black/50 flex items-center justify-center p-4">
+        <div className="fixed inset-0 z-[100] bg-black/50 flex items-center justify-center p-4">
           <div className="bg-white rounded-2xl w-full max-w-sm max-h-[80vh] flex flex-col shadow-2xl">
             <div className="p-4 border-b border-slate-100 flex items-center justify-between">
               <h3 className="font-bold text-base text-slate-800">Schedule dinner</h3>
@@ -1041,7 +1041,7 @@ export default function App() {
 
       {/* GEMINI AI SCAN MODAL */}
       {isScanModalOpen && (
-        <div className="fixed inset-0 z-50 bg-black/50 flex items-center justify-center p-4">
+        <div className="fixed inset-0 z-[100] bg-black/50 flex items-center justify-center p-4">
           <div className="bg-white rounded-2xl w-full max-w-sm shadow-2xl p-4 space-y-4">
             <div className="flex items-center justify-between border-b border-slate-100 pb-2">
               <h3 className="font-bold text-base text-slate-800">Scan Recipe (Gemini AI)</h3>
@@ -1112,7 +1112,7 @@ export default function App() {
 
       {/* RECIPE URL IMPORT MODAL */}
       {isUrlModalOpen && (
-        <div className="fixed inset-0 z-50 bg-black/50 flex items-center justify-center p-4">
+        <div className="fixed inset-0 z-[100] bg-black/50 flex items-center justify-center p-4">
           <form 
             onSubmit={handleImportUrl}
             className="bg-white rounded-2xl w-full max-w-sm shadow-2xl p-4 space-y-4"
@@ -1181,10 +1181,10 @@ export default function App() {
 
       {/* CREATE / EDIT RECIPE MODAL */}
       {isRecipeModalOpen && (
-        <div className="fixed inset-0 z-50 bg-black/50 flex items-end justify-center p-0">
+        <div className="fixed inset-0 z-[100] bg-black/50 flex items-end justify-center p-0">
           <form 
             onSubmit={handleSaveRecipe}
-            className="bg-white rounded-t-2xl w-full max-w-lg max-h-[90vh] overflow-y-auto flex flex-col shadow-2xl"
+            className="bg-white rounded-t-2xl w-full max-w-lg max-h-[90vh] overflow-hidden flex flex-col shadow-2xl"
           >
             {/* Modal Header */}
             <div className="p-4 border-b border-slate-100 flex items-center justify-between bg-slate-50 sticky top-0 z-10">
@@ -1364,7 +1364,7 @@ export default function App() {
             </div>
 
             {/* Modal Actions */}
-            <div className="p-4 border-t border-slate-100 bg-slate-50 flex gap-2">
+            <div className="p-4 pb-safe border-t border-slate-100 bg-slate-50 flex gap-2">
               <button 
                 type="button"
                 onClick={() => setIsRecipeModalOpen(false)}
