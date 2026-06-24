@@ -626,6 +626,111 @@ async def scan_recipe(
         logger.exception("Error during Gemini processing")
         raise HTTPException(status_code=500, detail="Failed to scan recipe. Please ensure the image is clear and try again.")
 
+# Helper to fetch and clean webpage for URL import
+def fetch_and_clean_url(url: str) -> str:
+    import urllib.request
+    import re
+    
+    req = urllib.request.Request(
+        url, 
+        headers={'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36'}
+    )
+    with urllib.request.urlopen(req, timeout=10) as response:
+        html = response.read().decode('utf-8', errors='ignore')
+    
+    # Strip script and style tags to reduce token size while preserving HTML structure
+    html = re.sub(r'<script\b[^<]*(?:(?!<\/script>)<[^<]*)*<\/script>', '', html, flags=re.IGNORECASE)
+    html = re.sub(r'<style\b[^<]*(?:(?!<\/style>)<[^<]*)*<\/style>', '', html, flags=re.IGNORECASE)
+    
+    # Keep only the first 100k characters (plenty for any recipe site)
+    return html[:100000]
+
+class RecipeUrlImport(BaseModel):
+    url: str
+
+@app.post("/api/import-recipe-url")
+def import_recipe_url(import_data: RecipeUrlImport):
+    gemini_key = os.environ.get("GEMINI_API_KEY")
+    if not gemini_key:
+        raise HTTPException(status_code=400, detail="Gemini API Key is missing. Please configure it in .env.")
+
+    url = import_data.url.strip()
+    if not url:
+        raise HTTPException(status_code=400, detail="URL cannot be empty.")
+
+    try:
+        html_content = fetch_and_clean_url(url)
+    except Exception as e:
+        logger.error(f"Error fetching URL {url}: {str(e)}")
+        raise HTTPException(status_code=400, detail="Failed to retrieve the webpage. Please check the URL and try again.")
+
+    try:
+        import google.generativeai as genai
+        genai.configure(api_key=gemini_key)
+        
+        model = genai.GenerativeModel("gemini-2.5-flash")
+        
+        prompt = f"""
+        Analyze this HTML/text content of a recipe webpage and convert it into a structured JSON object.
+        Extract the recipe title, description, prep time, cook time, servings, ingredients (with parsed amounts and units), instructions, and appropriate tags.
+        Return a valid JSON object matching this schema EXACTLY.
+        Do not include any Markdown wrap like ```json or ```. Return the raw JSON block.
+        
+        Schema:
+        {{
+          "title": "Recipe Name (string)",
+          "description": "A very brief, kid-friendly / family-oriented summary of the recipe (string)",
+          "prep_time": 15, // estimated preparation time in minutes, integer only
+          "cook_time": 30, // estimated cooking time in minutes, integer only
+          "servings": 4, // integer only, estimate if not mentioned (default 4)
+          "ingredients": [
+            {{
+              "name": "ingredient name (string)",
+              "amount": "quantity like 1.5 or 1/2 or 2 (string)",
+              "unit": "unit like lbs, cups, tbsp, tsp, can, pieces (string)",
+              "notes": "extra notes like minced, diced, optional (string)"
+            }}
+          ],
+          "instructions": "Markdown formatted step-by-step cooking instructions (string)",
+          "tags": ["Tag1", "Tag2"] // array of strings. Identify if this is likely "Kid-Friendly", "Healthy", "Adult-Friendly", "Quick", etc.
+        }}
+        
+        Webpage Content:
+        {html_content}
+        """
+        
+        response = model.generate_content(prompt)
+        
+        text_response = response.text.strip()
+        if text_response.startswith("```json"):
+            text_response = text_response.replace("```json", "", 1)
+        if text_response.startswith("```"):
+            text_response = text_response.replace("```", "", 1)
+        if text_response.endswith("```"):
+            text_response = text_response[:-3]
+        text_response = text_response.strip()
+        
+        parsed_recipe = json.loads(text_response)
+        
+        # Validate required fields
+        required_fields = ["title", "description", "prep_time", "cook_time", "servings", "ingredients", "instructions", "tags"]
+        for f in required_fields:
+            if f not in parsed_recipe:
+                if f in ["prep_time", "cook_time", "servings"]:
+                    parsed_recipe[f] = 0
+                elif f == "ingredients":
+                    parsed_recipe[f] = []
+                elif f == "tags":
+                    parsed_recipe[f] = []
+                else:
+                    parsed_recipe[f] = ""
+                    
+        return parsed_recipe
+
+    except Exception as e:
+        logger.exception("Error during Gemini URL import processing")
+        raise HTTPException(status_code=500, detail="Failed to parse the recipe. The page structure may be unsupported.")
+
 # Mount static files for React frontend if built
 from fastapi.staticfiles import StaticFiles
 if os.path.exists("./static"):
