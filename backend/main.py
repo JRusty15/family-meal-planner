@@ -554,8 +554,8 @@ async def scan_recipe(
         # Configure Gemini
         genai.configure(api_key=gemini_key)
         
-        # Use gemini-1.5-flash as it is fast, affordable and supports multimodal inputs + structured outputs
-        model = genai.GenerativeModel("gemini-1.5-flash")
+        # Use gemini-2.5-flash as it is fast, affordable and supports multimodal inputs + structured outputs
+        model = genai.GenerativeModel("gemini-2.5-flash")
         
         prompt = """
         Analyze this image of a recipe (from a cookbook, written card, or screen) and convert it into a structured JSON object.
@@ -621,10 +621,10 @@ async def scan_recipe(
 
     except ImportError:
         logger.error("google-generativeai module is not installed")
-        raise HTTPException(status_code=500, detail="Google Generative AI library is not installed on the server backend.")
+        raise HTTPException(status_code=500, detail="Failed to scan recipe due to a server configuration issue.")
     except Exception as e:
-        logger.error(f"Error during Gemini processing: {str(e)}")
-        raise HTTPException(status_code=500, detail=f"Failed to scan recipe using Gemini: {str(e)}")
+        logger.exception("Error during Gemini processing")
+        raise HTTPException(status_code=500, detail="Failed to scan recipe. Please ensure the image is clear and try again.")
 
 # Mount static files for React frontend if built
 from fastapi.staticfiles import StaticFiles

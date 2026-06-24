@@ -59,6 +59,7 @@ export default function App() {
   const [scanningImage, setScanningImage] = useState(null);
   const [scanningPreview, setScanningPreview] = useState(null);
   const [scanStatus, setScanStatus] = useState(''); // 'idle', 'uploading', 'success', 'error'
+  const [scanError, setScanError] = useState('');
   
   // Custom grocery item form state
   const [newGroceryName, setNewGroceryName] = useState('');
@@ -213,6 +214,7 @@ export default function App() {
   const handleRunScan = async () => {
     if (!scanningImage) return;
     setScanStatus('uploading');
+    setScanError('');
     
     const formData = new FormData();
     formData.append('file', scanningImage);
@@ -251,7 +253,7 @@ export default function App() {
     } catch (err) {
       console.error(err);
       setScanStatus('error');
-      alert(`Scanning Error: ${err.message}`);
+      setScanError(err.message || 'An unexpected error occurred while scanning.');
     }
   };
 
@@ -618,6 +620,7 @@ export default function App() {
                   setScanningImage(null);
                   setScanningPreview(null);
                   setScanStatus('idle');
+                  setScanError('');
                   setIsScanModalOpen(true);
                 }}
                 className="flex-1 bg-gradient-to-r from-blue-600 to-indigo-600 text-white font-semibold py-2.5 px-4 rounded-xl shadow-sm text-sm hover:from-blue-700 hover:to-indigo-700 transition-all flex items-center justify-center gap-1.5"
@@ -1014,6 +1017,12 @@ export default function App() {
               <div className="text-center space-y-2">
                 <div className="animate-spin rounded-full h-6 w-6 border-2 border-emerald-600 border-t-transparent mx-auto" />
                 <p className="text-xs text-slate-600 font-medium">Gemini is reading the recipe... (Takes 3-5s)</p>
+              </div>
+            )}
+
+            {scanStatus === 'error' && (
+              <div className="bg-red-50 border border-red-200 text-red-800 p-2.5 rounded-xl text-xs font-medium text-center">
+                {scanError || 'An error occurred while scanning the recipe.'}
               </div>
             )}
 
