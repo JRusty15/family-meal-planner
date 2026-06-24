@@ -1,0 +1,30 @@
+# Databases and persistent data
+/data/
+*.db
+*.db-journal
+*.sqlite
+
+# Environment variables (Sensitive API keys)
+.env
+backend/.env
+
+# Node.js dependencies and build files
+node_modules/
+frontend/node_modules/
+dist/
+frontend/dist/
+
+# Python virtual environment & caches
+venv/
+backend/venv/
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.pytest_cache/
+.mypy_cache/
+
+# OS files
+.DS_Store
+Thumbs.db
+desktop.ini

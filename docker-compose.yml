@@ -1,0 +1,17 @@
+version: "3.8"
+
+services:
+  meal-planner:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: family-meal-planner
+    ports:
+      - "8000:8000"
+    environment:
+      - GEMINI_API_KEY=${GEMINI_API_KEY}
+      - RUNNING_IN_DOCKER=true
+    volumes:
+      # Mount the folder to persist our SQLite database cleanly
+      - ./data:/app/data
+    restart: unless-stopped
