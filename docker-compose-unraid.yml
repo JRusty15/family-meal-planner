@@ -1,0 +1,15 @@
+version: "3.8"
+
+services:
+  meal-planner:
+    image: ghcr.io/jrusty15/family-meal-planner:latest
+    container_name: family-meal-planner
+    ports:
+      - "8080:8000" # Change 8080 if you have another app already using it on Unraid
+    environment:
+      - GEMINI_API_KEY=${GEMINI_API_KEY}
+      - RUNNING_IN_DOCKER=true
+    volumes:
+      # Maps your database persistence cleanly to Unraid Appdata
+      - /mnt/user/appdata/family-meal-planner:/app/data
+    restart: unless-stopped
